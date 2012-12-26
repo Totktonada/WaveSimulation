@@ -1,0 +1,21 @@
+---- Shaders and GLSL ----
+
+[1] http://www.lighthouse3d.com/tutorials/glsl-core-tutorial/glsl-core-tutorial-troubleshooting-the-infolog/
+[2] http://code.google.com/p/gl33lessons/wiki/Lesson02
+[3] http://code.google.com/p/gl33lessons/wiki/Lesson03
+[4] http://www.lighthouse3d.com/tutorials/glsl-core-tutorial/creating-a-shader/
+
+---- Textures ----
+
+[5] http://gl33lessons.googlecode.com/svn/tags/lesson03/data/texture.tga
+[6] http://www.flickr.com/photos/zooboing/3682834083/
+
+---- Matrix and quaterions related ----
+
+[7] http://dhpoware.com/demos/glCamera2.html
+[8] (RU) http://www.rossprogrammproduct.com/translations/Matrix%20and%20Quaternion%20FAQ.htm
+[9] http://www.j3d.org/matrix_faq/matrfaq_latest.html
+
+---- External libraries bugs ----
+
+[10] http://www.opengl.org/wiki/OpenGL_Loading_Library#GLEW

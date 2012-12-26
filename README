@@ -1,0 +1,25 @@
+---- About ----
+
+University task. See [1].
+
+[1] (RU) http://courses.graphicon.ru/main/cg/2012/assignment04
+
+---- Dependencies ----
+
+* opengl 3.3;
+* glew;
+* glfw.
+
+---- Navigation, keys, buttons ----
+
+Slide: WASD, Page Up/Page Down, move mouse with pressed left or right shift.
+
+Rotate: arrows, Q, E, move mouse.
+
+Make wave: left mouse button.
+
+On/off vsync: F8.
+
+On/off pause: Pause key.
+
+Exit: Esc.

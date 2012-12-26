@@ -1,0 +1,12 @@
+* float -> GLfloat.
+
+* Alpha channel in texture for pool.
+
+* Lexer ignores unknown attributes.
+
+* Skybox, object in pool, shadows.
+
+* Make waves in separate shader, without wait for fixed-timeout texture rotate
+* step.
+
+* Optimize finding intersection of ray and box.
