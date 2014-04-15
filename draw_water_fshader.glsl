@@ -157,7 +157,7 @@ Rect rect[10] = Rect[10]
 
 void calcRayColor(vec3 rRay, vec3 normal, out float dist, out vec4 color)
 {
-    if (rRay == 0.0)
+    if (rRay == vec3(0.0))
     {
         dist = 1000.0;
         color = vec4(0.0, 0.20, 0.40, 1.0);
@@ -199,7 +199,7 @@ void calcRayColor(vec3 rRay, vec3 normal, out float dist, out vec4 color)
         {
             cur_color = texture(texCube, res_tc);
         }
-        else if (!cube)
+        else
         {
             cur_color = texture(texPool, res_tc);
         }
@@ -225,7 +225,11 @@ vec3 calcNormal(vec2 tc, vec3 to_camera_norm)
     vec3 dx = vec3(pow(2.0 * meshTexStep.x, 2) + 6.0 * meshTexStep.x, 0.0, pow(zR - zL, 2) + (zRR - zLL));
     vec3 dy = vec3(0.0, pow(2.0 * meshTexStep.y, 2) + 6.0 * meshTexStep.y, pow(zU - zD, 2) + (zUU - zDD));
 
-    //vec3 normal = normalize(vec3(zL - zR, zD - zU, 2.0 * meshTexStep.x));
+    // Straight normal -- the water looks more gnarly (angular).
+    // vec3 normal = normalize(vec3(zL - zR, zD - zU, 2.0 * meshTexStep.x));
+
+    // This not work correctly with nouveau linux driver,
+    // you can fallback to 'straight normal' defined in comment before.
     vec3 normal = normalize(cross(dx, dy));
 
     if (dot(to_camera_norm, normal) < 0.0)
@@ -263,7 +267,7 @@ void main(void)
         rRay = reflect(-to_camera_norm, normal);
         calcRayColor(rRay, normal, dist2, reflectColor);
         wf = water_color_factor(dist2);
-        reflectColor = mix(reflectColor, waterColor, wf);;
+        reflectColor = mix(reflectColor, waterColor, wf);
     }
     else
     {

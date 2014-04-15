@@ -18,9 +18,11 @@ uniform struct Transform
 transform;
 
 in vec2 vpos;
+
+// Comment out for current (apr 2014) nouveau gentoo linux driver.
 out vec4 gl_FragData[1];
 
-const float pi = 3.141592654;
+const float pi = 3.14159265358979323846;
 
 // Is point p in rectangle with left-bottom corner x and
 // right-up corner y?
@@ -63,6 +65,7 @@ void main(void)
     float zDst = (1.0 - w) * zFst +
         w * (zSndL + zSndR + zSndD + zSndU) / 4.0;
 
+    // TODO: Maybe we need modify height map first and make wave after?
     if (makeWave)
     {
         float wUnder = sign(transform.viewPosition.z -
@@ -78,7 +81,7 @@ void main(void)
             float dist = distance(vec2(texX, texY), texCoord);
 
             // Radius of wave.
-            float r = 4 * meshTexStep;
+            float r = 2 * (meshTexStep.x + meshTexStep.y);
 
             // Full height from dow to up wave.
             float h = 0.4 * wUnder;
