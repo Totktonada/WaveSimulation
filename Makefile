@@ -31,7 +31,7 @@ default: $(EXEC_FILE)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 $(EXEC_FILE): $(OBJMODULES)
-	$(CC) $(CFLAGS) $(LDFLAGS) $^ -o $@
+	$(CC) $(CFLAGS) $^ $(LDFLAGS) -o $@
 
 ifneq (clean, $(MAKECMDGOALS))
 ifneq (clang_analyze_clean, $(MAKECMDGOALS))
