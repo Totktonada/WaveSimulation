@@ -10,6 +10,7 @@ struct ContextSize
 {
     int w;
     int h;
+    GLFWwindow * window;
 }
 ContextSize;
 

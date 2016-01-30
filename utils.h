@@ -1,6 +1,8 @@
 #ifndef UTILS_H_SENTRY
 #define UTILS_H_SENTRY
 
+#define UNUSED(x) (void)(x)
+
 #define STR_EQUAL(str1, str2) \
     (strcmp((str1), (str2)) == 0)
 

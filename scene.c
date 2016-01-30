@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <GL/glew.h>
-#include <GL/glfw.h>
+#include <GLFW/glfw3.h>
 #include "scene.h"
 #include "camera.h"
 #include "shaders_errors.h"
@@ -21,23 +21,24 @@ void setupOpenGLContext(ContextSize * context)
         exit(EXIT_FAILURE);
     }
 
-    glfwOpenWindowHint(GLFW_OPENGL_VERSION_MAJOR, 3);
-    glfwOpenWindowHint(GLFW_OPENGL_VERSION_MINOR, 3);
-    glfwOpenWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-    glfwOpenWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
-    if (glfwOpenWindow(
-            context->w, context->h,
-            0, 0, 0, /* red, green, blue bits -> default */
-            0, 0, 0, /* alpha, depth, stencil bits -> default */
-            GLFW_WINDOW) == GL_FALSE)
+    context->window = glfwCreateWindow(
+        context->w, context->h,
+        "Wave Simulation", /* window title */
+        NULL,  /* NULL to use windowed mode */
+        NULL); /* NULL to not share resources with other windows */
+    if (context->window == GL_FALSE)
     {
         fprintf(stderr, "glfwOpenWindow failed.\n");
         glfwTerminate();
         exit(EXIT_FAILURE);
     }
 
-    glfwSetWindowTitle("Wave Simulation");
+    glfwMakeContextCurrent(context->window);
 
     CHECK_OPENGL_ERRORS(__FILE__, __LINE__);
 }

@@ -7,7 +7,7 @@
 #include "shaders.h"
 #include "camera.h"
 #include "utils.h"
-#include <GL/glfw.h>
+#include <GLFW/glfw3.h>
 
 #define SLIDE_STEP 0.05f
 #define ROTATE_STEP 1.0f
@@ -35,8 +35,10 @@ static Flags flags;
 
 /* ==== Callbacks ==== */
 
-void GLFWCALL windowResizeCallback(int w, int h)
+void windowResizeCallback(GLFWwindow * window, int w, int h)
 {
+    UNUSED(window);
+
     scene->context->w = w;
     scene->context->h = h;
 
@@ -57,8 +59,13 @@ void GLFWCALL windowResizeCallback(int w, int h)
     glViewport(0, 0, w, h);
 }
 
-void GLFWCALL keyboardCallback(int key, int action)
+void keyboardCallback(GLFWwindow * window, int key, int scancode,
+    int action, int mods)
 {
+    UNUSED(window);
+    UNUSED(scancode);
+    UNUSED(mods);
+
     if (key == GLFW_KEY_PAUSE && action == GLFW_PRESS)
     {
         flags.pause = !flags.pause;
@@ -79,8 +86,12 @@ void GLFWCALL keyboardCallback(int key, int action)
     }
 }
 
-void GLFWCALL mouseButtonCallback(int button, int action)
+void mouseButtonCallback(GLFWwindow * window, int button, int action,
+    int mods)
 {
+    UNUSED(window);
+    UNUSED(mods);
+
     if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS &&
         !flags.pause)
     {
@@ -88,84 +99,84 @@ void GLFWCALL mouseButtonCallback(int button, int action)
     }
 }
 
-void processKeyboardEvents(float factor)
+void processKeyboardEvents(GLFWwindow * window, float factor)
 {
     int cameraModified = 0;
     float slide = SLIDE_STEP * factor;
     float rotate = ROTATE_STEP * factor;
 
-    if (glfwGetKey(GLFW_KEY_ESC) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
     {
         running = GL_FALSE;
     }
 
-    if (glfwGetKey('W') == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
     {
         slideCamera(scene->camera, 0.0f, 0.0f, -slide);
         cameraModified = 1;
     }
 
-    if (glfwGetKey('S') == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
     {
         slideCamera(scene->camera, 0.0f, 0.0f, slide);
         cameraModified = 1;
     }
 
-    if (glfwGetKey('A') == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
     {
         slideCamera(scene->camera, -slide, 0.0f, 0.0f);
         cameraModified = 1;
     }
 
-    if (glfwGetKey('D') == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
     {
         slideCamera(scene->camera, slide, 0.0f, 0.0f);
         cameraModified = 1;
     }
 
-    if (glfwGetKey(GLFW_KEY_PAGEUP) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_PAGE_UP) == GLFW_PRESS)
     {
         slideCamera(scene->camera, 0.0f, slide, 0.0f);
         cameraModified = 1;
     }
 
-    if (glfwGetKey(GLFW_KEY_PAGEDOWN) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_PAGE_DOWN) == GLFW_PRESS)
     {
         slideCamera(scene->camera, 0.0f, -slide, 0.0f);
         cameraModified = 1;
     }
 
-    if (glfwGetKey(GLFW_KEY_UP) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
     {
         rotateCamera(scene->camera, 0.0f, -rotate, 0.0f);
         cameraModified = 1;
     }
 
-    if (glfwGetKey(GLFW_KEY_DOWN) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
     {
         rotateCamera(scene->camera, 0.0f, rotate, 0.0f);
         cameraModified = 1;
     }
 
-    if (glfwGetKey(GLFW_KEY_LEFT) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
     {
         rotateCamera(scene->camera, rotate, 0.0f, 0.0f);
         cameraModified = 1;
     }
 
-    if (glfwGetKey(GLFW_KEY_RIGHT) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
     {
         rotateCamera(scene->camera, -rotate, 0.0f, 0.0f);
         cameraModified = 1;
     }
 
-    if (glfwGetKey('Q') == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
     {
         rotateCamera(scene->camera, 0.0, 0.0f, rotate);
         cameraModified = 1;
     }
 
-    if (glfwGetKey('E') == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
     {
         rotateCamera(scene->camera, 0.0f, 0.0f, -rotate);
         cameraModified = 1;
@@ -183,10 +194,10 @@ void processKeyboardEvents(float factor)
     }
 }
 
-void processMouseEvents(float factor)
+void processMouseEvents(GLFWwindow * window, float factor)
 {
-    int x;
-    int y;
+    double x;
+    double y;
 
     int cx = scene->context->w / 2;
     int cy = scene->context->h / 2;
@@ -195,7 +206,7 @@ void processMouseEvents(float factor)
 
     float dx, dy;
 
-    glfwGetMousePos(&x, &y);
+    glfwGetCursorPos(window, &x, &y);
 
     dx = sensitivity * ((float) cx - (float) x);
     dy = sensitivity * ((float) cy - (float) y);
@@ -205,8 +216,8 @@ void processMouseEvents(float factor)
         return;
     }
 
-    if (glfwGetKey(GLFW_KEY_LSHIFT) == GLFW_PRESS ||
-        glfwGetKey(GLFW_KEY_RSHIFT) == GLFW_PRESS)
+    if (glfwGetKey(window, GLFW_KEY_LEFT_SHIFT) == GLFW_PRESS ||
+        glfwGetKey(window, GLFW_KEY_RIGHT_SHIFT) == GLFW_PRESS)
     {
         float slide = SLIDE_STEP * factor;
 
@@ -237,18 +248,18 @@ void processMouseEvents(float factor)
         setupCamera(scene->water->drawSP, scene->camera);
     }
 
-    glfwSetMousePos(cx, cy);
+    glfwSetCursorPos(window, cx, cy);
 }
 
-void setupGLFWCallbacks()
+void setupGLFWCallbacks(ContextSize * context)
 {
-    glfwSetWindowSizeCallback(windowResizeCallback);
+    glfwSetWindowSizeCallback(context->window, windowResizeCallback);
 
-    glfwEnable(GLFW_STICKY_KEYS);
-    glfwSetKeyCallback(keyboardCallback);
+    glfwSetInputMode(context->window, GLFW_STICKY_KEYS, GL_TRUE);
+    glfwSetKeyCallback(context->window, keyboardCallback);
 
-    glfwEnable(GLFW_STICKY_MOUSE_BUTTONS);
-    glfwSetMouseButtonCallback(mouseButtonCallback);
+    glfwSetInputMode(context->window, GLFW_STICKY_MOUSE_BUTTONS, GL_TRUE);
+    glfwSetMouseButtonCallback(context->window, mouseButtonCallback);
 }
 
 void draw()
@@ -259,7 +270,7 @@ void draw()
     drawWater(scene->water);
 }
 
-void viewFps(int frameCnt, float diffSum)
+void viewFps(int frameCnt, float diffSum, const ContextSize * context)
 {
     static char title[64];
     float fps = frameCnt / diffSum;
@@ -281,7 +292,7 @@ void viewFps(int frameCnt, float diffSum)
         sprintf(title, "Wave Simulation; FPS: %0.0f", fps);
     }
 
-    glfwSetWindowTitle(title);
+    glfwSetWindowTitle(context->window, title);
 }
 
 /* ==== Main ==== */
@@ -300,19 +311,20 @@ int main()
 
     scene = newScene(flags.vsync);
 
-    setupGLFWCallbacks();
-    glfwSetMousePos(scene->context->w / 2, scene->context->h / 2);
+    setupGLFWCallbacks(scene->context);
+    glfwSetCursorPos(scene->context->window,
+        scene->context->w / 2, scene->context->h / 2);
 
     while (running)
     {
-        if (glfwGetWindowParam(GLFW_OPENED) == GL_FALSE)
+        if (glfwWindowShouldClose(scene->context->window) == GL_FALSE)
         {
             running = GL_FALSE;
             break;
         }
 
-        processKeyboardEvents(dSecond * BASE_FPS);
-        processMouseEvents(dSecond * BASE_FPS);
+        processKeyboardEvents(scene->context->window, dSecond * BASE_FPS);
+        processMouseEvents(scene->context->window, dSecond * BASE_FPS);
 
         ++frameCnt;
         dSecond = timeval_diff_replace(&curTime);
@@ -320,7 +332,7 @@ int main()
 
         if (dSecondSum > 0.5f)
         {
-            viewFps(frameCnt, dSecondSum);
+            viewFps(frameCnt, dSecondSum, scene->context);
             frameCnt = 0;
             dSecondSum = 0.0f;
         }
@@ -331,7 +343,8 @@ int main()
         }
 
         draw();
-        glfwSwapBuffers();
+        glfwSwapBuffers(scene->context->window);
+        glfwPollEvents();
     }
 
     freeScene(scene);

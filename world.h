@@ -3,7 +3,7 @@
 
 #include "matrix.h"
 #include "shaders.h"
-#include <GL/glfw.h>
+#include <GLFW/glfw3.h>
 
 typedef
 struct PointLight
