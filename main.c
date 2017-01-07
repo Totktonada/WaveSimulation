@@ -317,7 +317,7 @@ int main()
 
     while (running)
     {
-        if (glfwWindowShouldClose(scene->context->window) == GL_FALSE)
+        if (glfwWindowShouldClose(scene->context->window))
         {
             running = GL_FALSE;
             break;
