@@ -1,5 +1,8 @@
 .vim
 *.sw[a-z]
 *.o
+*.obj
 deps.mk
 WaveSimulation
+WaveSimulation.exe
+win-libs
