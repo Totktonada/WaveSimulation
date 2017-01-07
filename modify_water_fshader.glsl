@@ -18,6 +18,7 @@ uniform struct Transform
 transform;
 
 in vec2 vpos;
+layout(location = 0) out vec4 outFragData;
 
 const float pi = 3.14159265358979323846;
 
@@ -95,5 +96,5 @@ void main(void)
         }
     }
 
-    gl_FragData[0] = vec4(zDst, 0.0, 0.0, 0.0);
+    outFragData = vec4(zDst, 0.0, 0.0, 0.0);
 }
