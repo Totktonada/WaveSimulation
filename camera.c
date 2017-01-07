@@ -7,18 +7,16 @@ Camera * newCamera(int w, int h)
 {
     Camera * camera = (Camera *) malloc(sizeof(Camera));
 
-    camera->pos[0] = 2.0f;
-    camera->pos[1] = 2.0f;
-    camera->pos[2] = 3.0f;
+    camera->pos[0] = 18.0f;
+    camera->pos[1] = 10.0f;
+    camera->pos[2] = 10.0f;
 
     camera->q[0] = 1.0f;
     camera->q[1] = 0.0f;
     camera->q[2] = 0.0f;
     camera->q[3] = 0.0f;
 
-    rotateCamera(camera, 0.0f, -90.0f, 0.0f);
-    rotateCamera(camera, 135.0f, 0.0f, 0.0f);
-    rotateCamera(camera, 0.0f, -45.0f, 0.0f);
+    rotateCamera(camera, -30.0f, -160.0f, 30.0f);
 
     camera->viewAngleY = 45.0f;
     camera->aspect = ((float) w) / ((float) h);
