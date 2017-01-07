@@ -15,6 +15,9 @@
 
 void setupOpenGLContext(ContextSize * context)
 {
+    GLFWmonitor * monitor = NULL;
+    const GLFWvidmode * mode = NULL;
+
     if (glfwInit() == GL_FALSE)
     {
         fprintf(stderr, "glfwInit failed.\n");
@@ -26,10 +29,26 @@ void setupOpenGLContext(ContextSize * context)
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 
+    monitor = glfwGetPrimaryMonitor();
+    if (monitor == NULL)
+    {
+        fprintf(stderr, "Cannot get primary monitor\n");
+        exit(EXIT_FAILURE);
+    }
+    mode = glfwGetVideoMode(monitor);
+    if (mode == NULL)
+    {
+        fprintf(stderr, "Cannot get mode of the primary monitor\n");
+        exit(EXIT_FAILURE);
+    }
+    /* set native resolution */
+    context->w = mode->width;
+    context->h = mode->height;
+
     context->window = glfwCreateWindow(
         context->w, context->h,
         "Wave Simulation", /* window title */
-        NULL,  /* NULL to use windowed mode */
+        monitor,  /* non-NULL monitor to use fullscreen mode */
         NULL); /* NULL to not share resources with other windows */
     if (context->window == GL_FALSE)
     {
