@@ -19,9 +19,6 @@ transform;
 
 in vec2 vpos;
 
-// Comment out for current (apr 2014) nouveau gentoo linux driver.
-out vec4 gl_FragData[1];
-
 const float pi = 3.14159265358979323846;
 
 // Is point p in rectangle with left-bottom corner x and
