@@ -13,47 +13,54 @@
 #define ROTATE_STEP 1.0f
 #define BASE_FPS 60.0f
 
+/* ==== Globals ==== */
+
 typedef
-struct Flags
+struct BuriedGlobals
 {
     GLboolean pause;
     GLboolean vsync;
+    /* running -- is application running (GL_TRUE) or must be terminated (GL_FALSE) */
+    GLboolean running;
+    Scene * scene;
 }
-Flags;
+BuriedGlobals;
 
-/* ==== Global variables ==== */
-
-/* If anyone known way to avoid use mutable global variables
- * (in this project), then e-mail to me, please. */
-
-static Scene * scene;
-
-/* Is application running (GL_TRUE) or must be terminated (GL_FALSE). */
-static int running = GL_TRUE;
-
-static Flags flags;
+BuriedGlobals * newBuriedGlobals()
+{
+    BuriedGlobals * globals = (BuriedGlobals *) malloc(sizeof(BuriedGlobals));
+    globals->pause = GL_FALSE;
+    globals->vsync = GL_TRUE;
+    globals->running = GL_TRUE;
+    globals->scene = newScene(globals->vsync);
+    glfwSetWindowUserPointer(globals->scene->context->window, globals);
+    return globals;
+}
 
 /* ==== Callbacks ==== */
 
 void windowResizeCallback(GLFWwindow * window, int w, int h)
 {
-    UNUSED(window);
+    BuriedGlobals * globals = (BuriedGlobals *) glfwGetWindowUserPointer(window);
 
-    scene->context->w = w;
-    scene->context->h = h;
+    globals->scene->context->w = w;
+    globals->scene->context->h = h;
 
-    scene->camera->aspect = ((float) scene->context->w) /
-        ((float) scene->context->h);
+    globals->scene->camera->aspect =
+        ((float) globals->scene->context->w) /
+        ((float) globals->scene->context->h);
 
-    if (scene->world != NULL)
+    if (globals->scene->world != NULL)
     {
-        setupCamera(scene->world->sp, scene->camera);
+        setupCamera(globals->scene->world->sp, globals->scene->camera);
     }
 
-    if (scene->water != NULL)
+    if (globals->scene->water != NULL)
     {
-        setupCameraAlter(scene->water->modifySP, scene->camera);
-        setupCamera(scene->water->drawSP, scene->camera);
+        setupCameraAlter(globals->scene->water->modifySP,
+            globals->scene->camera);
+        setupCamera(globals->scene->water->drawSP,
+            globals->scene->camera);
     }
 
     glViewport(0, 0, w, h);
@@ -62,20 +69,21 @@ void windowResizeCallback(GLFWwindow * window, int w, int h)
 void keyboardCallback(GLFWwindow * window, int key, int scancode,
     int action, int mods)
 {
-    UNUSED(window);
+    BuriedGlobals * globals = (BuriedGlobals *) glfwGetWindowUserPointer(window);
+
     UNUSED(scancode);
     UNUSED(mods);
 
     if (key == GLFW_KEY_PAUSE && action == GLFW_PRESS)
     {
-        flags.pause = !flags.pause;
+        globals->pause = !globals->pause;
     }
 
     if (key == GLFW_KEY_F8 && action == GLFW_PRESS)
     {
-        flags.vsync = !flags.vsync;
+        globals->vsync = !globals->vsync;
 
-        if (flags.vsync)
+        if (globals->vsync)
         {
             glfwSwapInterval(1);
         }
@@ -89,118 +97,125 @@ void keyboardCallback(GLFWwindow * window, int key, int scancode,
 void mouseButtonCallback(GLFWwindow * window, int button, int action,
     int mods)
 {
-    UNUSED(window);
+    BuriedGlobals * globals = (BuriedGlobals *) glfwGetWindowUserPointer(window);
+
     UNUSED(mods);
 
     if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS &&
-        !flags.pause)
+        !globals->pause)
     {
-        setWaterWave(scene->water);
+        setWaterWave(globals->scene->water);
     }
 }
 
 void processKeyboardEvents(GLFWwindow * window, float factor)
 {
+    BuriedGlobals * globals = (BuriedGlobals *) glfwGetWindowUserPointer(window);
+
     int cameraModified = 0;
     float slide = SLIDE_STEP * factor;
     float rotate = ROTATE_STEP * factor;
 
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
     {
-        running = GL_FALSE;
+        globals->running = GL_FALSE;
     }
 
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
     {
-        slideCamera(scene->camera, 0.0f, 0.0f, -slide);
+        slideCamera(globals->scene->camera, 0.0f, 0.0f, -slide);
         cameraModified = 1;
     }
 
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
     {
-        slideCamera(scene->camera, 0.0f, 0.0f, slide);
+        slideCamera(globals->scene->camera, 0.0f, 0.0f, slide);
         cameraModified = 1;
     }
 
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
     {
-        slideCamera(scene->camera, -slide, 0.0f, 0.0f);
+        slideCamera(globals->scene->camera, -slide, 0.0f, 0.0f);
         cameraModified = 1;
     }
 
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
     {
-        slideCamera(scene->camera, slide, 0.0f, 0.0f);
+        slideCamera(globals->scene->camera, slide, 0.0f, 0.0f);
         cameraModified = 1;
     }
 
     if (glfwGetKey(window, GLFW_KEY_PAGE_UP) == GLFW_PRESS)
     {
-        slideCamera(scene->camera, 0.0f, slide, 0.0f);
+        slideCamera(globals->scene->camera, 0.0f, slide, 0.0f);
         cameraModified = 1;
     }
 
     if (glfwGetKey(window, GLFW_KEY_PAGE_DOWN) == GLFW_PRESS)
     {
-        slideCamera(scene->camera, 0.0f, -slide, 0.0f);
+        slideCamera(globals->scene->camera, 0.0f, -slide, 0.0f);
         cameraModified = 1;
     }
 
     if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
     {
-        rotateCamera(scene->camera, 0.0f, -rotate, 0.0f);
+        rotateCamera(globals->scene->camera, 0.0f, -rotate, 0.0f);
         cameraModified = 1;
     }
 
     if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
     {
-        rotateCamera(scene->camera, 0.0f, rotate, 0.0f);
+        rotateCamera(globals->scene->camera, 0.0f, rotate, 0.0f);
         cameraModified = 1;
     }
 
     if (glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS)
     {
-        rotateCamera(scene->camera, rotate, 0.0f, 0.0f);
+        rotateCamera(globals->scene->camera, rotate, 0.0f, 0.0f);
         cameraModified = 1;
     }
 
     if (glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS)
     {
-        rotateCamera(scene->camera, -rotate, 0.0f, 0.0f);
+        rotateCamera(globals->scene->camera, -rotate, 0.0f, 0.0f);
         cameraModified = 1;
     }
 
     if (glfwGetKey(window, GLFW_KEY_Q) == GLFW_PRESS)
     {
-        rotateCamera(scene->camera, 0.0, 0.0f, rotate);
+        rotateCamera(globals->scene->camera, 0.0, 0.0f, rotate);
         cameraModified = 1;
     }
 
     if (glfwGetKey(window, GLFW_KEY_E) == GLFW_PRESS)
     {
-        rotateCamera(scene->camera, 0.0f, 0.0f, -rotate);
+        rotateCamera(globals->scene->camera, 0.0f, 0.0f, -rotate);
         cameraModified = 1;
     }
 
-    if (cameraModified && scene->world != NULL)
+    if (cameraModified && globals->scene->world != NULL)
     {
-        setupCamera(scene->world->sp, scene->camera);
+        setupCamera(globals->scene->world->sp, globals->scene->camera);
     }
 
-    if (cameraModified && scene->water != NULL)
+    if (cameraModified && globals->scene->water != NULL)
     {
-        setupCameraAlter(scene->water->modifySP, scene->camera);
-        setupCamera(scene->water->drawSP, scene->camera);
+        setupCameraAlter(globals->scene->water->modifySP,
+            globals->scene->camera);
+        setupCamera(globals->scene->water->drawSP,
+            globals->scene->camera);
     }
 }
 
 void processMouseEvents(GLFWwindow * window, float factor)
 {
+    BuriedGlobals * globals = (BuriedGlobals *) glfwGetWindowUserPointer(window);
+
     double x;
     double y;
 
-    int cx = scene->context->w / 2;
-    int cy = scene->context->h / 2;
+    int cx = globals->scene->context->w / 2;
+    int cy = globals->scene->context->h / 2;
 
     float sensitivity = 0.05f;
 
@@ -224,7 +239,7 @@ void processMouseEvents(GLFWwindow * window, float factor)
         dx *= slide;
         dy *= slide;
 
-        slideCamera(scene->camera, -dx, dy, 0.0f);
+        slideCamera(globals->scene->camera, -dx, dy, 0.0f);
     }
     else
     {
@@ -233,19 +248,21 @@ void processMouseEvents(GLFWwindow * window, float factor)
         dx *= rotate;
         dy *= rotate;
 
-        rotateCamera(scene->camera, dx, 0.0f, 0.0f);
-        rotateCamera(scene->camera, 0.0f, -dy, 0.0f);
+        rotateCamera(globals->scene->camera, dx, 0.0f, 0.0f);
+        rotateCamera(globals->scene->camera, 0.0f, -dy, 0.0f);
     }
 
-    if (scene->world != NULL)
+    if (globals->scene->world != NULL)
     {
-        setupCamera(scene->world->sp, scene->camera);
+        setupCamera(globals->scene->world->sp, globals->scene->camera);
     }
 
-    if (scene->water != NULL)
+    if (globals->scene->water != NULL)
     {
-        setupCameraAlter(scene->water->modifySP, scene->camera);
-        setupCamera(scene->water->drawSP, scene->camera);
+        setupCameraAlter(globals->scene->water->modifySP,
+            globals->scene->camera);
+        setupCamera(globals->scene->water->drawSP,
+            globals->scene->camera);
     }
 
     glfwSetCursorPos(window, cx, cy);
@@ -262,7 +279,7 @@ void setupGLFWCallbacks(ContextSize * context)
     glfwSetMouseButtonCallback(context->window, mouseButtonCallback);
 }
 
-void draw()
+void draw(const Scene * scene)
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -270,20 +287,20 @@ void draw()
     drawWater(scene->water);
 }
 
-void viewFps(int frameCnt, float diffSum, const ContextSize * context)
+void viewFps(int frameCnt, float diffSum, const BuriedGlobals * globals)
 {
     static char title[64];
     float fps = frameCnt / diffSum;
 
-    if (flags.vsync && flags.pause)
+    if (globals->vsync && globals->pause)
     {
         sprintf(title, "Wave Simulation; FPS: %0.0f [vsync, paused]", fps);
     }
-    else if (flags.vsync)
+    else if (globals->vsync)
     {
         sprintf(title, "Wave Simulation; FPS: %0.0f [vsync]", fps);
     }
-    else if (flags.pause)
+    else if (globals->pause)
     {
         sprintf(title, "Wave Simulation; FPS: %0.0f [paused]", fps);
     }
@@ -292,13 +309,15 @@ void viewFps(int frameCnt, float diffSum, const ContextSize * context)
         sprintf(title, "Wave Simulation; FPS: %0.0f", fps);
     }
 
-    glfwSetWindowTitle(context->window, title);
+    glfwSetWindowTitle(globals->scene->context->window, title);
 }
 
 /* ==== Main ==== */
 
 int main()
 {
+    BuriedGlobals * globals = newBuriedGlobals();
+
     int frameCnt = 0;
     struct timeval curTime;
     float dSecond = 0;
@@ -306,25 +325,22 @@ int main()
 
     timeval_diff_replace(&curTime);
 
-    flags.pause = GL_FALSE;
-    flags.vsync = GL_TRUE;
+    setupGLFWCallbacks(globals->scene->context);
+    glfwSetCursorPos(globals->scene->context->window,
+        globals->scene->context->w / 2, globals->scene->context->h / 2);
 
-    scene = newScene(flags.vsync);
-
-    setupGLFWCallbacks(scene->context);
-    glfwSetCursorPos(scene->context->window,
-        scene->context->w / 2, scene->context->h / 2);
-
-    while (running)
+    while (globals->running)
     {
-        if (glfwWindowShouldClose(scene->context->window))
+        if (glfwWindowShouldClose(globals->scene->context->window))
         {
-            running = GL_FALSE;
+            globals->running = GL_FALSE;
             break;
         }
 
-        processKeyboardEvents(scene->context->window, dSecond * BASE_FPS);
-        processMouseEvents(scene->context->window, dSecond * BASE_FPS);
+        processKeyboardEvents(globals->scene->context->window,
+            dSecond * BASE_FPS);
+        processMouseEvents(globals->scene->context->window,
+            dSecond * BASE_FPS);
 
         ++frameCnt;
         dSecond = timeval_diff_replace(&curTime);
@@ -332,22 +348,23 @@ int main()
 
         if (dSecondSum > 0.5f)
         {
-            viewFps(frameCnt, dSecondSum, scene->context);
+            viewFps(frameCnt, dSecondSum, globals);
             frameCnt = 0;
             dSecondSum = 0.0f;
         }
 
-        if (!flags.pause)
+        if (!globals->pause)
         {
-            modifyWaterMesh(scene->water, dSecond);
+            modifyWaterMesh(globals->scene->water, dSecond);
         }
 
-        draw();
-        glfwSwapBuffers(scene->context->window);
+        draw(globals->scene);
+        glfwSwapBuffers(globals->scene->context->window);
         glfwPollEvents();
     }
 
-    freeScene(scene);
+    freeScene(globals->scene);
+    free(globals);
 
     return EXIT_SUCCESS;
 }
