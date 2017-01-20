@@ -13,21 +13,35 @@
 #define ROTATE_STEP 1.0f
 #define BASE_FPS 60.0f
 
+/* ==== Globals ==== */
+
 typedef
-struct {
-    GLboolean vsync;
-    GLboolean running;
+struct Controller
+{
     GLboolean pause;
+    GLboolean vsync;
+    /* running -- is application running (GL_TRUE) or must be terminated (GL_FALSE) */
+    GLboolean running;
     Scene * scene;
-} Controller;
+}
+Controller;
+
+Controller * newController()
+{
+    Controller * controller = (Controller *) malloc(sizeof(Controller));
+    controller->pause = GL_FALSE;
+    controller->vsync = GL_TRUE;
+    controller->running = GL_TRUE;
+    controller->scene = newScene(controller->vsync);
+    glfwSetWindowUserPointer(controller->scene->context->window, controller);
+    return controller;
+}
 
 /* ==== Callbacks ==== */
 
 void windowResizeCallback(GLFWwindow * window, int w, int h)
 {
-    Controller * controller;
-
-    controller = (Controller*)glfwGetWindowUserPointer(window);
+    Controller * controller = (Controller *) glfwGetWindowUserPointer(window);
 
     controller->scene->context->w = w;
     controller->scene->context->h = h;
@@ -44,9 +58,9 @@ void windowResizeCallback(GLFWwindow * window, int w, int h)
     if (controller->scene->water != NULL)
     {
         setupCameraAlter(controller->scene->water->modifySP,
-                         controller->scene->camera);
+            controller->scene->camera);
         setupCamera(controller->scene->water->drawSP,
-                    controller->scene->camera);
+            controller->scene->camera);
     }
 
     glViewport(0, 0, w, h);
@@ -55,12 +69,10 @@ void windowResizeCallback(GLFWwindow * window, int w, int h)
 void keyboardCallback(GLFWwindow * window, int key, int scancode,
     int action, int mods)
 {
-    Controller * controller;
+    Controller * controller = (Controller *) glfwGetWindowUserPointer(window);
 
     UNUSED(scancode);
     UNUSED(mods);
-
-    controller = (Controller*)glfwGetWindowUserPointer(window);
 
     if (key == GLFW_KEY_PAUSE && action == GLFW_PRESS)
     {
@@ -85,11 +97,9 @@ void keyboardCallback(GLFWwindow * window, int key, int scancode,
 void mouseButtonCallback(GLFWwindow * window, int button, int action,
     int mods)
 {
-    Controller * controller;
+    Controller * controller = (Controller *) glfwGetWindowUserPointer(window);
 
     UNUSED(mods);
-
-    controller = (Controller*)glfwGetWindowUserPointer(window);
 
     if (button == GLFW_MOUSE_BUTTON_LEFT && action == GLFW_PRESS &&
         !controller->pause)
@@ -100,12 +110,11 @@ void mouseButtonCallback(GLFWwindow * window, int button, int action,
 
 void processKeyboardEvents(GLFWwindow * window, float factor)
 {
+    Controller * controller = (Controller *) glfwGetWindowUserPointer(window);
+
     int cameraModified = 0;
     float slide = SLIDE_STEP * factor;
     float rotate = ROTATE_STEP * factor;
-    Controller * controller;
-
-    controller = (Controller*)glfwGetWindowUserPointer(window);
 
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
     {
@@ -192,32 +201,28 @@ void processKeyboardEvents(GLFWwindow * window, float factor)
     if (cameraModified && controller->scene->water != NULL)
     {
         setupCameraAlter(controller->scene->water->modifySP,
-                         controller->scene->camera);
+            controller->scene->camera);
         setupCamera(controller->scene->water->drawSP,
-                    controller->scene->camera);
+            controller->scene->camera);
     }
 }
 
 void processMouseEvents(GLFWwindow * window, float factor)
 {
+    Controller * controller = (Controller *) glfwGetWindowUserPointer(window);
+
     double x;
     double y;
 
-    int cx;
-    int cy;
+    int cx = controller->scene->context->w / 2;
+    int cy = controller->scene->context->h / 2;
 
     float sensitivity = 0.05f;
 
     float dx, dy;
 
-    Controller * controller;
-
-    controller = (Controller*)glfwGetWindowUserPointer(window);
-
     glfwGetCursorPos(window, &x, &y);
 
-    cx = controller->scene->context->w / 2;
-    cy = controller->scene->context->h / 2;
     dx = sensitivity * ((float) cx - (float) x);
     dy = sensitivity * ((float) cy - (float) y);
 
@@ -255,9 +260,9 @@ void processMouseEvents(GLFWwindow * window, float factor)
     if (controller->scene->water != NULL)
     {
         setupCameraAlter(controller->scene->water->modifySP,
-                         controller->scene->camera);
+            controller->scene->camera);
         setupCamera(controller->scene->water->drawSP,
-                    controller->scene->camera);
+            controller->scene->camera);
     }
 
     glfwSetCursorPos(window, cx, cy);
@@ -274,12 +279,12 @@ void setupGLFWCallbacks(ContextSize * context)
     glfwSetMouseButtonCallback(context->window, mouseButtonCallback);
 }
 
-void draw(const Controller * controller)
+void draw(const Scene * scene)
 {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    drawWorld(controller->scene->world);
-    drawWater(controller->scene->water);
+    drawWorld(scene->world);
+    drawWater(scene->water);
 }
 
 void viewFps(int frameCnt, float diffSum, const Controller * controller)
@@ -311,7 +316,8 @@ void viewFps(int frameCnt, float diffSum, const Controller * controller)
 
 int main()
 {
-    Controller controller;
+    Controller * controller = newController();
+
     int frameCnt = 0;
     struct timeval curTime;
     float dSecond = 0;
@@ -319,28 +325,22 @@ int main()
 
     timeval_diff_replace(&curTime);
 
-    controller.vsync = GL_TRUE;
-    controller.running = GL_TRUE;
-    controller.pause = GL_FALSE;
-    controller.scene = newScene(controller.vsync);
-    glfwSetWindowUserPointer(controller.scene->context->window, &controller);
+    setupGLFWCallbacks(controller->scene->context);
+    glfwSetCursorPos(controller->scene->context->window,
+        controller->scene->context->w / 2, controller->scene->context->h / 2);
 
-    setupGLFWCallbacks(controller.scene->context);
-    glfwSetCursorPos(controller.scene->context->window,
-        controller.scene->context->w / 2, controller.scene->context->h / 2);
-
-    while (controller.running)
+    while (controller->running)
     {
-        if (glfwWindowShouldClose(controller.scene->context->window))
+        if (glfwWindowShouldClose(controller->scene->context->window))
         {
-            controller.running = GL_FALSE;
+            controller->running = GL_FALSE;
             break;
         }
 
-        processKeyboardEvents(controller.scene->context->window,
-                              dSecond * BASE_FPS);
-        processMouseEvents(controller.scene->context->window,
-                           dSecond * BASE_FPS);
+        processKeyboardEvents(controller->scene->context->window,
+            dSecond * BASE_FPS);
+        processMouseEvents(controller->scene->context->window,
+            dSecond * BASE_FPS);
 
         ++frameCnt;
         dSecond = timeval_diff_replace(&curTime);
@@ -348,22 +348,23 @@ int main()
 
         if (dSecondSum > 0.5f)
         {
-            viewFps(frameCnt, dSecondSum, &controller);
+            viewFps(frameCnt, dSecondSum, controller);
             frameCnt = 0;
             dSecondSum = 0.0f;
         }
 
-        if (!controller.pause)
+        if (!controller->pause)
         {
-            modifyWaterMesh(controller.scene->water, dSecond);
+            modifyWaterMesh(controller->scene->water, dSecond);
         }
 
-        draw(&controller);
-        glfwSwapBuffers(controller.scene->context->window);
+        draw(controller->scene);
+        glfwSwapBuffers(controller->scene->context->window);
         glfwPollEvents();
     }
 
-    freeScene(controller.scene);
+    freeScene(controller->scene);
+    free(controller);
 
     return EXIT_SUCCESS;
 }
